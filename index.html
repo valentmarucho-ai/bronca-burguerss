@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bronca Burguers</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif;padding-bottom:105px}
+header{text-align:center;padding:35px 20px 25px;background:linear-gradient(#210000,#090909)}
+.logo{font-size:46px;font-weight:1000;letter-spacing:-3px;color:#e51d2a}
+.logo span{color:white}
+.sub{color:#aaa;font-size:13px;letter-spacing:4px;margin-top:5px}
+.notice{background:#d71920;padding:13px;text-align:center;font-weight:900}
+main{max-width:900px;margin:auto;padding:25px 16px}
+h2{font-size:29px;margin:10px 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}
+.card{background:#151515;border:1px solid #292929;border-radius:18px;padding:20px;transition:.2s}
+.card.selected{border:2px solid #e51d2a;background:#1c1010}
+.card h3{margin:0 0 7px;font-size:25px}
+.desc{color:#aaa;line-height:1.4;min-height:58px}
+.price{font-size:23px;font-weight:900;margin:14px 0}
+.select{width:100%;border:0;border-radius:12px;padding:13px;background:#292929;color:white;font-weight:bold;font-size:15px}
+.selected .select{background:#e51d2a}
+.order{margin-top:32px;background:#141414;border-radius:20px;padding:20px;border:1px solid #292929}
+.row{margin:18px 0}
+label{display:block;font-weight:bold;margin-bottom:8px}
+select,textarea{width:100%;background:#222;color:#fff;border:1px solid #3a3a3a;padding:14px;border-radius:12px;font-size:16px}
+.qty{display:flex;align-items:center;gap:18px}
+.qty button{width:42px;height:42px;border:0;border-radius:50%;background:#e51d2a;color:#fff;font-size:25px}
+.qty b{font-size:20px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #333;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10}
+.total small{display:block;color:#999}.total b{font-size:22px}
+.whatsapp{background:#25D366;color:#071b0e;border:0;padding:15px 19px;border-radius:14px;font-size:16px;font-weight:900}
+footer{text-align:center;color:#777;padding:35px 10px}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">BRONCA <span>BURGUERS</span></div>
+<div class="sub">HAMBURGUESAS SIN CALMA</div>
+</header>
+
+<div class="notice">🍟 TODAS LAS HAMBURGUESAS INCLUYEN PAPAS</div>
+
+<main>
+<h2>Elegí tu Bronca 🍔</h2>
+<div class="grid" id="menu"></div>
+
+<section class="order">
+<h2>Armá tu pedido</h2>
+
+<div class="row">
+<label>Cantidad</label>
+<div class="qty">
+<button onclick="qty(-1)">−</button>
+<b id="quantity">1</b>
+<button onclick="qty(1)">+</button>
+</div>
+</div>
+
+<div class="row">
+<label>Bebida</label>
+<select id="drink">
+<option>Sin bebida</option>
+<option>Coca-Cola</option>
+<option>Coca-Cola Zero</option>
+<option>Sprite</option>
+<option>Fanta</option>
+</select>
+</div>
+
+<div class="row">
+<label>Papas</label>
+<select id="fries">
+<option>Con papas</option>
+<option>Sin papas</option>
+</select>
+</div>
+
+<div class="row">
+<label>¿Querés agregar algo?</label>
+<textarea id="notes" rows="3" placeholder="Ej: sin cebolla, salsa aparte..."></textarea>
+</div>
+</section>
+
+<footer>
+@bronca.burguers<br><br>
+🔥 Hechas para sacarte la bronca
+</footer>
+</main>
+
+<div class="bottom">
+<div class="total">
+<small>TOTAL</small>
+<b id="total">$0</b>
+</div>
+<button class="whatsapp" onclick="order()">Pedir por WhatsApp</button>
+</div>
+
+<script>
+const burgers=[
+{name:"Bronca",price:12000,desc:"Doble carne, cheddar, bacon, cebolla y salsa Bronca."},
+{name:"Gulera",price:15000,desc:"Triple carne, cuádruple cheddar, bacon, salsa Bronca, ketchup y cebolla."},
+{name:"Panela",price:14000,desc:"Doble carne, cheddar, bacon y salsa especial."},
+{name:"Rabiosa",price:13500,desc:"Doble carne, cheddar, cebolla crispy y salsa picante."},
+{name:"Bestia",price:14500,desc:"Triple carne, triple cheddar, bacon y salsa Bronca."},
+{name:"Clásica",price:11000,desc:"Doble carne, doble cheddar, ketchup y cebolla."}
+];
+
+let selected=null;
+let amount=1;
+
+const menu=document.getElementById("menu");
+
+burgers.forEach((b,i)=>{
+menu.innerHTML+=`
+<div class="card" id="card${i}">
+<h3>${b.name}</h3>
+<div class="desc">${b.desc}</div>
+<div class="price">$${b.price.toLocaleString("es-AR")}</div>
+<button class="select" onclick="choose(${i})">Seleccionar</button>
+</div>`;
+});
+
+function choose(i){
+selected=i;
+document.querySelectorAll(".card").forEach(x=>x.classList.remove("selected"));
+document.getElementById("card"+i).classList.add("selected");
+update();
+document.querySelector(".order").scrollIntoView({behavior:"smooth"});
+}
+
+function qty(n){
+amount=Math.max(1,amount+n);
+document.getElementById("quantity").innerText=amount;
+update();
+}
+
+function update(){
+let value=selected===null?0:burgers[selected].price*amount;
+document.getElementById("total").innerText="$"+value.toLocaleString("es-AR");
+}
+
+function order(){
+if(selected===null){
+alert("Primero elegí una hamburguesa 🍔");
+return;
+}
+
+const b=burgers[selected];
+const drink=document.getElementById("drink").value;
+const fries=document.getElementById("fries").value;
+const notes=document.getElementById("notes").value || "Sin aclaraciones";
+const total=b.price*amount;
+
+const text=`🔥 PEDIDO BRONCA 🔥
+
+🍔 ${b.name}
+🔢 Cantidad: ${amount}
+🥤 Bebida: ${drink}
+🍟 ${fries}
+📝 ${notes}
+
+💰 Total: $${total.toLocaleString("es-AR")}`;
+
+window.open("https://wa.me/5493518114871?text="+encodeURIComponent(text),"_blank");
+}
+</script>
+
+</body>
+</html>
